@@ -1,7 +1,7 @@
 <?php
 
 // WooCommerce - Apply sales price to multiple products
-// Last update: 2025-02-01
+// Last update: 2025-02-02
 
 
 function update_product_prices()
@@ -9,15 +9,15 @@ function update_product_prices()
     // Define the category slug
     $category_slugs = array('specialty-coffees-de');
 
-    // Define the price mapping (current price => new price)
+    // Define the price mapping (current price => new price) as string keys
     $price_updates = array(
-        7.00 => 7.90,
-        12.40 => 13.90,
-        24.80 => 27.80,
-        5.60 => 7.10,
-        11.15 => 12.50,
-        22.30 => 25.00,
-        11.00 => 15.00
+        '7.00' => 7.90,
+        '12.40' => 13.90,
+        '24.80' => 27.80,
+        '5.60' => 7.10,
+        '11.15' => 12.50,
+        '22.30' => 25.00,
+        '11.00' => 15.00
     );
 
     // Convert category slugs to IDs
@@ -45,7 +45,8 @@ function update_product_prices()
                 'terms'    => $category_ids,
                 'operator' => 'IN'
             )
-        )
+        ),
+		'post_status' => array('publish', 'private')
     ));
 
     foreach ($products as $product) {
@@ -66,20 +67,32 @@ function update_product_prices()
 function update_product_price($product_id, $price_updates)
 {
     $regular_price = get_post_meta($product_id, '_regular_price', true);
-    $regular_price = floatval($regular_price);
+    $regular_price = floatval($regular_price); // Convert regular price to float
 
-    if (isset($price_updates[$regular_price])) {
-        $new_price = $price_updates[$regular_price];
-        update_post_meta($product_id, '_regular_price', $new_price);
-        update_post_meta($product_id, '_price', $new_price); // Ensure price update
+    // Convert the regular price to cents (multiply by 100 and round)
+    $regular_price_cents = round($regular_price * 100);
 
-        $product = get_post($product_id);
-        echo 'Product price updated: ' . $product->ID . ' - ' . $product->post_title . ' (' . $product->post_name . ')<br>';
-        echo 'Old Regular Price: ' . $regular_price . '<br>';
-        echo 'New Regular Price: ' . $new_price . '<br><br>';
-    } else {
-        echo 'No matching price for product ID ' . $product_id . ' (Current price: ' . $regular_price . ')<br>';
+    // Iterate through price updates and compare after converting to cents
+    foreach ($price_updates as $old_price => $new_price) {
+        // Convert the old price to cents
+        $old_price_cents = round($old_price * 100);
+        $new_price_cents = round($new_price * 100);
+
+        // Compare the prices in cents
+        if ($regular_price_cents === $old_price_cents) {
+            // Update the product with the new price in cents
+            update_post_meta($product_id, '_regular_price', $new_price_cents / 100);
+            update_post_meta($product_id, '_price', $new_price_cents / 100); // Ensure price update
+
+            $product = get_post($product_id);
+            echo 'Product price updated: ' . $product->ID . ' - ' . $product->post_title . ' (' . $product->post_name . ')<br>';
+            echo 'Old Regular Price: ' . $regular_price . '<br>';
+            echo 'New Regular Price: ' . ($new_price_cents / 100) . '<br><br>';
+            return; // Exit after the first match
+        }
     }
+
+    echo 'No matching price for product ID ' . $product_id . ' (Current price: ' . $regular_price . ')<br>';
 }
 
 // Execute the function

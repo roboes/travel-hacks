@@ -44,7 +44,6 @@ mv "$website_root_directory/dolibarr/htdocs/conf/conf.php.example" "$website_roo
 chmod 666 "$website_root_directory/dolibarr/htdocs/conf/conf.php"
 ```
 
-
 ## Edit `$website_root_directory/dolibarr/conf/conf.php` file
 
 ```.sh
@@ -59,7 +58,6 @@ $dolibarr_main_document_root = '$website_root_directory/dolibarr/htdocs';
 $dolibarr_main_data_root = '$website_root_directory/dolibarr/documents';
 ```
 
-
 ### Additional nginx directives
 
 (set up variables above will not work here)
@@ -70,7 +68,6 @@ location /dolibarr/ {
  index index.php;
 }
 ```
-
 
 ### Permissions
 
