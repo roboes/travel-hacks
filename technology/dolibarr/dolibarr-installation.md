@@ -13,7 +13,7 @@ system_user=""
 system_group=""
 ```
 
-## Install Dolibarr
+## Download and Install Dolibarr
 
 ```.sh
 # Change current directory
